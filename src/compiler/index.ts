@@ -103,6 +103,11 @@ export interface Field {
   deprecationReason?: string;
   isConditional?: boolean;
   selectionSet?: SelectionSet;
+  // hasOperationExclusiveDirectives is a flag that tracks
+  // whether a field/fragment is decorated with a directive
+  // that will exclude it from being resolved by
+  // the GraphQL server (e.g. include/skip directives)
+  hasOperationExclusiveDirectives?: boolean;
 }
 
 export interface TypeCondition {
@@ -290,7 +295,15 @@ class Compiler {
       case Kind.FIELD: {
         const name = selectionNode.name.value;
         const alias = selectionNode.alias ? selectionNode.alias.value : undefined;
-
+        let hasOperationExclusiveDirectives = false;
+        if (selectionNode.directives) {
+          for (const directive of selectionNode.directives) {
+            if (directive.name.value === "skip" || directive.name.value === "include") {
+              hasOperationExclusiveDirectives = true;
+              break;
+            }
+          }
+        }
         const args =
           selectionNode.arguments && selectionNode.arguments.length > 0
             ? argumentsFromAST(selectionNode.arguments)
@@ -321,7 +334,8 @@ class Compiler {
           type: fieldType,
           description: !isMetaFieldName(name) && description ? description : undefined,
           isDeprecated,
-          deprecationReason
+          deprecationReason,
+          hasOperationExclusiveDirectives,
         };
 
         if (isCompositeType(unmodifiedFieldType)) {

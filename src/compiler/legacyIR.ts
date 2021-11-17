@@ -75,6 +75,11 @@ export interface LegacyField {
   fields?: LegacyField[];
   fragmentSpreads?: string[];
   inlineFragments?: LegacyInlineFragment[];
+  // hasOperationExclusiveDirectives is a flag that tracks
+  // whether a field/fragment is decorated with a directive
+  // that will exclude it from being resolved by
+  // the GraphQL server (e.g. include/skip directives)
+  hasOperationExclusiveDirectives?: boolean;
 }
 
 export interface BooleanCondition {
@@ -199,7 +204,7 @@ class LegacyIRTransformer {
 
   transformFieldsToLegacyIR(fields: Field[]) {
     return fields.map(field => {
-      const { args, type, isConditional, description, isDeprecated, deprecationReason, selectionSet } = field;
+      const { args, type, isConditional, description, isDeprecated, deprecationReason, selectionSet, hasOperationExclusiveDirectives } = field;
       const conditions =
         field.conditions && field.conditions.length > 0
           ? field.conditions.map(({ kind, variableName, inverted }) => {
@@ -220,6 +225,7 @@ class LegacyIRTransformer {
         description,
         isDeprecated,
         deprecationReason,
+        hasOperationExclusiveDirectives,
         ...selectionSet ? this.transformSelectionSetToLegacyIR(selectionSet) : {}
       } as LegacyField;
     });

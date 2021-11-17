@@ -272,6 +272,7 @@ export function propertiesFromFields(context: LegacyCompilerContext, fields: {
   fragmentSpreads?: any,
   inlineFragments?: LegacyInlineFragment[],
   fieldName?: string
+  hasOperationExclusiveDirectives?: boolean;
 }[]) {
   return fields.map(field => propertyFromField(context, field));
 }
@@ -285,6 +286,7 @@ export function propertyFromField(context: LegacyCompilerContext, field: {
   fragmentSpreads?: any,
   inlineFragments?: LegacyInlineFragment[],
   fieldName?: string
+  hasOperationExclusiveDirectives?: boolean;
 }): Property {
   let { name: fieldName, type: fieldType, description, fragmentSpreads, inlineFragments } = field;
   fieldName = fieldName || field.responseName;
@@ -296,7 +298,7 @@ export function propertyFromField(context: LegacyCompilerContext, field: {
   const namedType = getNamedType(fieldType);
 
   let isNullable = true;
-  if (fieldType instanceof GraphQLNonNull) {
+  if (fieldType instanceof GraphQLNonNull && !field.hasOperationExclusiveDirectives) {
     isNullable = false;
   }
 
