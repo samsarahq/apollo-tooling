@@ -40,7 +40,6 @@
   },
   "dependencies": {
     "change-case": "^3.0.1",
-    "core-js": "^2.5.0",
     "glob": "^7.1.2",
     "graphql": "^0.11.3",
     "inflected": "^2.0.2",
@@ -51,10 +50,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": [
-      "<rootDir>/src/polyfills.js"
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/test-utils/matchers.ts"
     ],
-    "setupFilesAfterEnv": ["<rootDir>/test/test-utils/matchers.ts"],
     "testMatch": [
       "**/test/**/*.(js|ts)",
       "**/test/*.(js|ts)"
