@@ -1,3 +1,5 @@
+import { expect } from '@jest/globals';
+
 import { SelectionSet, Field, BooleanCondition } from '../../../src/compiler';
 import { collectAndMergeFields } from '../../../src/compiler/visitors/collectAndMergeFields';
 import { TypeCase } from '../../../src/compiler/visitors/typeCase';

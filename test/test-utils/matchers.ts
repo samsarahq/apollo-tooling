@@ -1,26 +1,23 @@
+import { expect } from '@jest/globals';
+import type { MatcherFunction } from 'expect';
+
 import { collectAndMergeFields } from '../../src/compiler/visitors/collectAndMergeFields';
 
 import { SelectionSet } from '../../src/compiler';
 
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toMatchSelectionSet(possibleTypeNames: string[], expectedResponseKeys: string[]): R;
-      toContainSelectionSetMatching(possibleTypeNames: string[], expectedResponseKeys: string[]): R;
-    }
-    interface MatcherUtils {
-      equals(a: any, b: any): boolean;
-    }
+declare module 'expect' {
+  interface Matchers<R, T> {
+    toMatchSelectionSet(possibleTypeNames: string[], expectedResponseKeys: string[]): R;
+    toContainSelectionSetMatching(possibleTypeNames: string[], expectedResponseKeys: string[]): R;
   }
 }
 
-function toMatchSelectionSet(
-  this: jest.MatcherUtils,
-  received: SelectionSet,
+const toMatchSelectionSet: MatcherFunction<[
   possibleTypeNames: string[],
   expectedResponseKeys: string[]
-): { message(): string; pass: boolean } {
-  const actualResponseKeys = collectAndMergeFields(received).map(field => field.responseKey);
+]> = function(received, possibleTypeNames, expectedResponseKeys) {
+  const receivedSet = received as SelectionSet;
+  const actualResponseKeys = collectAndMergeFields(receivedSet).map(field => field.responseKey);
 
   const pass = this.equals(actualResponseKeys, expectedResponseKeys);
 
@@ -47,13 +44,12 @@ function toMatchSelectionSet(
   }
 }
 
-function toContainSelectionSetMatching(
-  this: jest.MatcherUtils,
-  received: SelectionSet[],
+const toContainSelectionSetMatching: MatcherFunction<[
   possibleTypeNames: string[],
   expectedResponseKeys: string[]
-): { message(): string; pass: boolean } {
-  const variant = received.find(variant => {
+]> = function(received, possibleTypeNames, expectedResponseKeys) {
+  const receivedSet = received as SelectionSet[];
+  const variant = receivedSet.find(variant => {
     return this.equals(Array.from(variant.possibleTypes).map(type => type.name), possibleTypeNames);
   });
 
@@ -63,7 +59,7 @@ function toContainSelectionSetMatching(
         `Expected array to contain variant for:\n` +
         `  ${this.utils.printExpected(possibleTypeNames)}\n` +
         `But only found variants for:\n` +
-        received
+        receivedSet
           .map(
             variant =>
               `  ${this.utils.printReceived(variant.possibleTypes)} -> ${this.utils.printReceived(
@@ -81,4 +77,4 @@ function toContainSelectionSetMatching(
 expect.extend({
   toMatchSelectionSet,
   toContainSelectionSetMatching
-} as any);
+});

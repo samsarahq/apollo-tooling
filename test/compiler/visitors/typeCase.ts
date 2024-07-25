@@ -1,3 +1,4 @@
+import { expect } from '@jest/globals';
 import { buildSchema } from 'graphql';
 import { compile } from '../../test-utils/helpers';
 
